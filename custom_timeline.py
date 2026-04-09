@@ -39,8 +39,6 @@ class CustomTimeline(Timeline):
 
             while not finished:
                 new_elt = self.increase_one_page(experiment, participant)
-                if new_elt is not None:
-                    new_elt.consume(experiment, participant)
 
                 if isinstance(new_elt, EndRoundPage):
                     finished = True
