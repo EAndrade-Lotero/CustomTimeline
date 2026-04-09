@@ -68,12 +68,7 @@ class CustomTimeline(Timeline):
 
         try:
             new_elt = self.get_current_elt(experiment, participant)
-        except PageMakerFinishedError as e:
-            logger.info("--------------------------------")
-            logger.info("--- PageMakerFinishedError ---")
-            logger.info(f"participant.elt_id: {participant.elt_id}")
-            logger.info(e)
-            logger.info("--------------------------------")
+        except PageMakerFinishedError:
             participant.elt_id = participant.elt_id[:-1]
             participant.elt_id_max = participant.elt_id_max[:-1]
             return None

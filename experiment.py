@@ -26,12 +26,23 @@ from .custom_timeline import (
 )
 
 logger = get_logger()
-
+NUM_ROUNDS = 2
 
 def get_start_nodes():
     return [
-        ChainNode(definition={"dummy": "dummy"})
+        CustomChainNode(definition={"dummy": "dummy"})
     ]
+
+
+class CustomChainNode(ChainNode):
+
+    def create_definition_from_seed(self, seed, experiment, participant):
+        return seed
+
+    def summarize_trials(self, trials: list, experiment, participant):
+        return {
+            "dummy": "dummy"
+        }
 
 
 class CustomChainTrial(ChainTrial):
@@ -45,7 +56,7 @@ class CustomChainTrial(ChainTrial):
                 lambda participant: participant.var.set("round_failed", True)
             ),
             InfoPage(
-                "In this page I fail the round.",
+                f"In this page I fail the round. (Round {self.position + 1} / {NUM_ROUNDS})",
                 time_estimate=5,
             ),
             InfoPage(
@@ -53,7 +64,7 @@ class CustomChainTrial(ChainTrial):
                 time_estimate=5,
             ),
             EndRoundPage(
-                prompt="This the end-of-round page",
+                prompt="This is the end-of-round page",
                 control=NullControl(),
                 save_answer="reward",
                 time_estimate=self.time_estimate,
@@ -72,7 +83,7 @@ class Exp(psynet.experiment.Experiment):
         ChainTrialMaker(
             id_="custom_chain_trial_maker",
             trial_class=CustomChainTrial,
-            node_class=ChainNode,
+            node_class=CustomChainNode,
             chain_type="within",
             start_nodes=get_start_nodes,
             expected_trials_per_participant=5,
@@ -81,7 +92,7 @@ class Exp(psynet.experiment.Experiment):
             # allow_repeated_nodes=True,
             target_n_participants=60,
             wait_for_networks=True,
-            max_nodes_per_chain=2,
+            max_nodes_per_chain=NUM_ROUNDS,
             trials_per_node=1,
         ),
     )
