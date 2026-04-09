@@ -1,0 +1,241 @@
+{% macro outer_acceptance(config) %}
+
+<div class="outer-acceptance-root">
+  <style>
+    .outer-acceptance-root {
+      font-family: Arial, sans-serif;
+      box-sizing: border-box;
+      max-width: 100%;
+      padding: 0.25rem 0 1rem;
+    }
+
+    .outer-acceptance-root *,
+    .outer-acceptance-root *::before,
+    .outer-acceptance-root *::after {
+      box-sizing: inherit;
+    }
+
+    .outer-acceptance-root .outer-acceptance-text {
+      max-width: 700px;
+      margin-left: auto;
+      margin-right: auto;
+      margin-bottom: 0.75rem;
+    }
+
+    .outer-acceptance-root .outer-acceptance-tabletop {
+      width: 700px;
+      max-width: 100%;
+      min-height: 400px;
+      background: #eceaea;
+      border-radius: 20px;
+      padding: 20px;
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+      align-items: center;
+      position: relative;
+      margin-left: auto;
+      margin-right: auto;
+      gap: 20px;
+    }
+
+    .outer-acceptance-root .outer-acceptance-countdown {
+      position: absolute;
+      top: 15px;
+      left: 20px;
+      font-family: "Book Antiqua", Palatino, serif;
+      font-size: 22px;
+      font-weight: bold;
+      color: rgb(83, 83, 83);
+    }
+
+    .outer-acceptance-root .outer-acceptance-zone {
+      border: 2px solid #365c5c;
+      border-radius: 12px;
+      padding: 15px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .outer-acceptance-root .outer-acceptance-center-top {
+      width: 300px;
+      max-width: 100%;
+      height: 280px;
+    }
+
+    .outer-acceptance-root .outer-acceptance-center-middle {
+      width: 200px;
+      max-width: 100%;
+      height: 220px;
+    }
+
+    .outer-acceptance-root .outer-acceptance-rectangle {
+      width: 150px;
+      height: 50px;
+      background: rgb(221, 233, 255);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: "Book Antiqua", Palatino, serif;
+      font-weight: bold;
+      letter-spacing: 1px;
+    }
+
+    .outer-acceptance-root .outer-acceptance-basket {
+      width: 200px;
+      max-width: 100%;
+      height: 100px;
+      background-image: url("../static/plate.png");
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+      position: relative;
+    }
+
+    .outer-acceptance-root .outer-acceptance-coin-pile {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      justify-content: center;
+    }
+
+    .outer-acceptance-root .outer-acceptance-coin {
+      width: 25px;
+      aspect-ratio: 1 / 1;
+      background-image: url("../static/coin.png");
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+      cursor: default;
+    }
+
+    .outer-acceptance-root .outer-acceptance-avatar {
+      width: 80px;
+      height: 80px;
+      background-image: url("../static/generic.png");
+      background-size: cover;
+      background-position: center;
+      border-radius: 50%;
+      position: relative;
+      user-select: none;
+      color: white;
+      font-weight: bold;
+    }
+
+    .outer-acceptance-root .outer-acceptance-avatar.partner {
+      background-image: url("../static/generic.png");
+    }
+
+    .outer-acceptance-root .outer-acceptance-avatar-label {
+      position: absolute;
+      bottom: 4px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 14px;
+      background: rgba(168, 168, 168, 0.5);
+      padding: 2px 6px;
+      border-radius: 6px;
+    }
+
+    .outer-acceptance-root .outer-acceptance-avatarzone {
+      min-height: 90px;
+      width: 30%;
+      min-width: 80px;
+      border: 0 dashed rgb(55, 0, 255);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      text-align: center;
+    }
+  </style>
+
+  <div class="outer-acceptance-text">{{ config.text }}</div>
+
+  <div class="outer-acceptance-tabletop">
+
+    <div class="outer-acceptance-countdown" id="outer-acceptance-countdown">00:00</div>
+
+    <div class="outer-acceptance-zone outer-acceptance-center-top">
+      <div class="outer-acceptance-rectangle">RESPONDER</div>
+      <div class="outer-acceptance-avatarzone">
+        <div class="outer-acceptance-avatar partner" draggable="false" id="partner">
+          <span class="outer-acceptance-avatar-label">...</span>
+        </div>
+      </div>
+      <div class="outer-acceptance-basket"></div>
+    </div>
+
+    <div class="outer-acceptance-zone outer-acceptance-center-middle">
+      <div class="outer-acceptance-rectangle">PROPOSER</div>
+      <div class="outer-acceptance-avatarzone" id="outer-acceptance-proposer-zone">
+        <div class="outer-acceptance-avatar" draggable="false" id="me">
+          <span class="outer-acceptance-avatar-label">...</span>
+        </div>
+      </div>
+      <div class="outer-acceptance-coin-pile">
+        {% for i in range(1, 11) %}
+        <div
+          class="outer-acceptance-coin"
+          draggable="false"
+          id="outer-acceptance-coin-{{ i }}"
+        ></div>
+        {% endfor %}
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    (function () {
+      const root = document.currentScript.closest(".outer-acceptance-root");
+      if (!root) return;
+
+      let timeRemaining = {{ config.timeout }};
+
+      function updateClock() {
+        const countdownEl = root.querySelector("#outer-acceptance-countdown");
+        if (!countdownEl) return;
+
+        const minutes = Math.floor(timeRemaining / 60);
+        const seconds = timeRemaining % 60;
+        countdownEl.textContent =
+          `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+
+        if (timeRemaining > 0) {
+          timeRemaining--;
+        } else {
+          clearInterval(timer);
+          const timeoutAnswer = Math.random() < 0.5;
+          psynet.response.disable();
+          psynet.submit.disable();
+          psynet.nextPage(timeoutAnswer);
+        }
+      }
+
+      updateClock();
+      const timer = setInterval(updateClock, 1000);
+
+      const avatarLabels = root.querySelectorAll(".outer-acceptance-avatar-label");
+
+      let p1 = "Me";
+      let p2 = "Partner";
+
+      const proposer = {{ config.proposal | tojson }};
+
+      if (proposer === "PROPOSER") {
+        p1 = "Partner";
+        p2 = "Me";
+      }
+
+      if (avatarLabels.length >= 2) {
+        avatarLabels[0].textContent = p1;
+        avatarLabels[1].textContent = p2;
+      }
+    })();
+  </script>
+</div>
+
+{% endmacro %}
