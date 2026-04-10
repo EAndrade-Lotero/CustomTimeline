@@ -44,6 +44,11 @@ class CustomTimeline(Timeline):
                     finished = True
                     break
 
+                try:
+                    elt_id_max = participant.elt_id_max[-1]
+                except IndexError:
+                    raise Exception("End of timeline reached. No end round page found.")
+
                 if participant.elt_id[-1] == participant.elt_id_max[-1]:
                     raise Exception("End of timeline reached. No end round page found.")
 
